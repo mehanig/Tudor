@@ -47,7 +47,7 @@ class HostService(BaseHTTPRequestHandler):
             post_data = self.rfile.read(content_length) # <--- Gets the data itself
             post_params = parse_qs(post_data.decode())
             if FFmpegRunner.is_correct(post_params):
-                FFmpegRunner(post_params).run()
+                FFmpegRunner(post_params).act()
                 self._set_headers()
                 self.wfile.write(b"<html><body><h1>OK</h1></body></html>")
 

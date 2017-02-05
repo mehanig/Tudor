@@ -1,6 +1,7 @@
 import os
 import signal
 from enum import Enum
+from functools import partial
 
 import subprocess
 import asyncio
@@ -32,7 +33,9 @@ class FFmpegRunner():
         if self.action == FfmpegActions.STOP:
             for pid in list(FFmpegRunner.proc_maper):
                 if FFmpegRunner.proc_maper[pid] == self.path:
-                    self.sigkill(pid)
+                    self.actor = partial(self.proc_killer_deferred, [pid])
+        if self.action == FfmpegActions.KILL_ALL:
+            self.actor = FFmpegRunner.kill_all
         super().__init__()
 
     @staticmethod
@@ -48,10 +51,14 @@ class FFmpegRunner():
         FFmpegRunner.proc_list.remove(pid)
         os.kill(pid, signal.SIGKILL)
 
+    # TODO: Make it author safe: Can Kill only processes spawned by Python
     @staticmethod
     def kill_all():
         for p in list(FFmpegRunner.proc_list):
-            FFmpegRunner.kill(p)
+            try:
+                FFmpegRunner.kill(p)
+            except ProcessLookupError as e:
+                pass # Make shure we don't fail due to race conditions
 
     def sigkill(self, pid=None):
         if pid is not None:
@@ -67,6 +74,9 @@ class FFmpegRunner():
         self.add_process_to_pool(proc.pid)
         FFmpegRunner.proc_maper[self.proc_id] = self.path
         return proc
+
+    def act(self):
+        return self.actor()
 
     def proc_killer_deferred(self, pid_list):
         for l in pid_list:
