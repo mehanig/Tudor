@@ -4,8 +4,6 @@ from enum import Enum
 from functools import partial
 
 import subprocess
-import asyncio
-
 
 class FfmpegActions(Enum):
     START = 'START'
@@ -84,3 +82,10 @@ class FFmpegRunner():
 
     def stop(self):
         self.sigkill()
+
+
+class FfmpegMontage(FFmpegRunner):
+    run_command_tmplt = ' '.join(
+    ['ffmpeg', '-f', 'lavfi', '-i', 'nullsrc=s=900x900:d=250', '-vf', '"geq=random(1)*255:128:128"',
+     '{file_path}', '-y'])
+

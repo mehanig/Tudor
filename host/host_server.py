@@ -21,10 +21,13 @@ Stop a record::
 Stop all ffmpeg processes::
     curl -d "ACTION=KILL_ALL&PATH=any" http://localhost/recorder
 
+Look how many processes is running::
+    curl http://localhost//monitoring
+
 """
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import parse_qs
-from host.ffmpeg_runner import FFmpegRunner
+from ffmpeg_runner import FFmpegRunner
 
 
 class HostService(BaseHTTPRequestHandler):
@@ -37,6 +40,10 @@ class HostService(BaseHTTPRequestHandler):
         if self.path == "/":
             self._set_headers()
             self.wfile.write(b"<html><body><h1>SRS, OK.</h1></body></html>")
+        if self.path == "/monitoring":
+            self._set_headers()
+            data = "{data}".format(data=len(FFmpegRunner.proc_list))
+            self.wfile.write(data.encode())
 
     def do_HEAD(self):
         self._set_headers()
@@ -55,8 +62,11 @@ class HostService(BaseHTTPRequestHandler):
 def run(server_class=HTTPServer, handler_class=HostService, port=80):
     server_address = ('', port)
     httpd = server_class(server_address, handler_class)
-    httpd.serve_forever()
-
+    print('Starting Henry server on port ' + str(port))
+    try:
+        httpd.serve_forever()
+    except KeyboardInterrupt:
+        httpd.shutdown()
 
 if __name__ == "__main__":
     from sys import argv

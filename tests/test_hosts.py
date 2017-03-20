@@ -105,6 +105,7 @@ class TestFFmpegRunner(unittest.TestCase):
         time.sleep(0.5)
         self.assertTrue(len(list(proc.proc_list)) == len(proc.proc_maper.keys()) == 0)
 
+
 class TestProcessServer(unittest.TestCase):
 
     def setUp(self):
