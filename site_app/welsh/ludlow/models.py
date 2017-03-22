@@ -23,6 +23,19 @@ class ServerFileSystemFolder:
     def rename(self, new_name):
         os.rename(src=self.local_path, dst=os.path.join(os.path.dirname(self.local_path), new_name))
 
+    @classmethod
+    def rename_in_course(cls, course, old_path, new_path):
+        if old_path.startswith(course.local_path) and new_path.startswith(course.local_path):
+            if not os.path.exists(new_path) and os.path.exists(old_path):
+                os.rename(src=old_path, dst=new_path)
+                return True
+            else:
+                print("Problem with path existence")
+                return False
+        else:
+            print("Paths are inconsistent or not related to Course")
+            return False
+
     def _add_child(self, name):
         if not os.path.exists(os.path.join(self.local_path, name)):
             os.makedirs(os.path.join(self.local_path, name))

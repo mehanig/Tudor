@@ -5,6 +5,7 @@ from rest_framework import viewsets, response, permissions
 from rest_framework.response import Response
 
 from welsh.ludlow.models import Course, Profile
+from welsh.ludlow.operations import UserAction
 from welsh.ludlow.permissions import IsOwnerOnly
 from welsh.ludlow.serializers import CourseSerializer
 from .serializers import UserSerializer
@@ -63,8 +64,9 @@ class CourseViewSet(viewsets.ModelViewSet):
             if pk is not None:
                 course = Course.objects.get(id=pk)
                 data = request.data
-                print(course)
-                print(data)
+                success = UserAction(course, request).result
+                if not success:
+                    raise Exception("Can't perform operation")
             else:
                 pass
         except Exception as e:

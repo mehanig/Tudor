@@ -11,6 +11,29 @@ from rest_framework.test import APIClient
 from rest_framework import status
 
 
+# TODO: Make it ClassMethod for BaseClass
+def _gen_course_structure(testClass):
+    testClass.lesson_list = ['test_lesson_empty', 'test_lesson_with_content']
+    testClass.lesson_with_content = testClass.lesson_list[1]
+    for i in [os.path.join(testClass.course_path, lesson) for lesson in testClass.lesson_list]:
+        os.makedirs(i)
+    testClass.step_list = ['test_step_empty', 'test_step_with_content']
+    testClass.step_with_content = testClass.step_list[1]
+    for i in [os.path.join(testClass.course_path, testClass.lesson_with_content, step) for step in testClass.step_list]:
+        os.makedirs(i)
+    testClass.substep_list = ['test_substep_empty', 'test_substep_screen', 'test_substep_camera']
+    testClass.substep_screen = testClass.substep_list[1]
+    testClass.substep_camera = testClass.substep_list[2]
+    for i in [os.path.join(testClass.course_path, testClass.lesson_with_content, testClass.step_with_content, substep) for substep in
+              testClass.substep_list]:
+        os.makedirs(i)
+    open(os.path.join(testClass.course_path, testClass.lesson_with_content, testClass.step_with_content, testClass.substep_camera,
+                      SUBSTEP_CAMERA_NAME), 'a')
+    open(os.path.join(testClass.course_path, testClass.lesson_with_content, testClass.step_with_content, testClass.substep_screen,
+                      SUBSTEP_SCREEN_NAME), 'w').close()
+
+
+
 class TestModels(TestCase):
     def setUp(self):
         self.user = User.objects.create_user('test_user', 'test_user@example.com', 'test_pass')
@@ -20,23 +43,7 @@ class TestModels(TestCase):
         self.course_path = os.path.join(self.SERVER_PATH_ROOT, self.profile.user.username, self.course_name)
         os.makedirs(self.course_path)
 
-        # Create 2 lessons, 1 empty, 1 with 2 steps ( 1 empty and one with 3 substeps
-        # (1 empty, 1 with screen and one with camera ))
-        self.lesson_list = ['test_lesson_empty', 'test_lesson_with_content']
-        self.lesson_with_content = self.lesson_list[1]
-        for i in [os.path.join(self.course_path, lesson) for lesson in self.lesson_list]:
-            os.makedirs(i)
-        self.step_list = ['test_step_empty', 'test_step_with_content']
-        self.step_with_content = self.step_list[1]
-        for i in [os.path.join(self.course_path, self.lesson_with_content, step) for step in self.step_list]:
-            os.makedirs(i)
-        self.substep_list = ['test_substep_empty', 'test_substep_screen', 'test_substep_camera']
-        self.substep_screen = self.substep_list[1]
-        self.substep_camera = self.substep_list[2]
-        for i in [os.path.join(self.course_path, self.lesson_with_content, self.step_with_content, substep) for substep in self.substep_list]:
-            os.makedirs(i)
-        open(os.path.join(self.course_path, self.lesson_with_content, self.step_with_content, self.substep_camera, SUBSTEP_CAMERA_NAME), 'a')
-        open(os.path.join(self.course_path, self.lesson_with_content, self.step_with_content, self.substep_screen, SUBSTEP_SCREEN_NAME), 'w').close()
+        _gen_course_structure(self)
 
     def tearDown(self):
         shutil.rmtree(self.SERVER_PATH_ROOT)
@@ -105,7 +112,6 @@ class TestModels(TestCase):
 class TestAPIPermissions(TestCase):
     def setUp(self):
         password = 'mypassword'
-        self.test_admin = User.objects.create_superuser('myadmin', 'myadmin@test.com', password)
         self.test_user = User.objects.create(username='myuser', email='myuser@test.com', password=password)
         token = Token.objects.get(user__username=self.test_user)
         self.client = APIClient()
@@ -146,3 +152,72 @@ class TestAPIPermissions(TestCase):
             self.assertEqual(res.status_code, status.HTTP_201_CREATED)
             res = self.client.get('/api/courses/')
             self.assertEqual(res.data[0]['name'], 'test_course')
+
+
+class TestCourseActions(TestCase):
+    def setUp(self):
+        password = 'mypassword'
+        self.test_user = User.objects.create(username='myuser', email='myuser@test.com', password=password)
+        self.test_user.save()
+        self.profile = Profile.objects.get(user=self.test_user)
+        token = Token.objects.get(user__username=self.test_user)
+        self.client = APIClient()
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+        self.SERVER_PATH_ROOT = tempfile.mkdtemp()
+
+        self.course_name = 'TestCourse'
+        self.course_path = os.path.join(self.SERVER_PATH_ROOT, self.test_user.username, self.course_name)
+        os.makedirs(self.course_path)
+
+        _gen_course_structure(self)
+
+        with self.settings(SERVER_PATH_ROOT=self.SERVER_PATH_ROOT):
+            self.course = Course(author=self.profile, name=self.course_name)
+            self.course.save()
+
+    def tearDown(self):
+        shutil.rmtree(self.SERVER_PATH_ROOT)
+        self.test_user.delete()
+        self.course.delete()
+
+    def test_rename_lesson(self):
+        with self.settings(SERVER_PATH_ROOT=self.SERVER_PATH_ROOT):
+            old_path = self.course.lessons[0].local_path
+            data = {"action": "rename",
+                    "old_path": old_path,
+                    "new_path": old_path + "_new"}
+            res = self.client.put('/api/courses/{course_id}/'.format(course_id=self.course.id), data, format='json')
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+            self.assertEqual(self.course.lessons[0].local_path, old_path + '_new')
+
+            res = self.client.put('/api/courses/{course_id}/'.format(course_id=self.course.id), data, format='json')
+            self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+            self.assertEqual(self.course.lessons[0].local_path, old_path + '_new')
+
+    def test_rename_step(self):
+        with self.settings(SERVER_PATH_ROOT=self.SERVER_PATH_ROOT):
+            old_path = self.course.lessons[1].steps[1].local_path
+            data = {"action": "rename",
+                    "old_path": old_path,
+                    "new_path": old_path + "_new"}
+            res = self.client.put('/api/courses/{course_id}/'.format(course_id=self.course.id), data, format='json')
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+            self.assertEqual(self.course.lessons[1].steps[1].local_path, old_path + '_new')
+
+            res = self.client.put('/api/courses/{course_id}/'.format(course_id=self.course.id), data, format='json')
+            self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+            self.assertEqual(self.course.lessons[1].steps[1].local_path, old_path + '_new')
+
+    def test_rename_substep(self):
+        with self.settings(SERVER_PATH_ROOT=self.SERVER_PATH_ROOT):
+            old_path = self.course.lessons[1].steps[1].substeps[1].local_path
+            data = {"action": "rename",
+                    "old_path": old_path,
+                    "new_path": old_path + "_new"}
+            res = self.client.put('/api/courses/{course_id}/'.format(course_id=self.course.id), data, format='json')
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+            self.assertEqual(self.course.lessons[1].steps[1].substeps[1].local_path, old_path + '_new')
+
+            res = self.client.put('/api/courses/{course_id}/'.format(course_id=self.course.id), data, format='json')
+            self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+            self.assertEqual(self.course.lessons[1].steps[1].substeps[1].local_path, old_path + '_new')
