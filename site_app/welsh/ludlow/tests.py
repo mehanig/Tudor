@@ -1,11 +1,17 @@
 from django.test import TestCase
 import shutil, tempfile, os
 
+from rest_framework.authtoken.models import Token
+
 from welsh.ludlow.models import *
 from welsh.ludlow.const import *
+from welsh.ludlow.views import CourseViewSet, UserViewSet
+
+from rest_framework.test import APIClient
+from rest_framework import status
 
 
-class TestExample(TestCase):
+class TestModels(TestCase):
     def setUp(self):
         self.user = User.objects.create_user('test_user', 'test_user@example.com', 'test_pass')
         self.profile = Profile(user=self.user)
@@ -27,8 +33,7 @@ class TestExample(TestCase):
         self.substep_list = ['test_substep_empty', 'test_substep_screen', 'test_substep_camera']
         self.substep_screen = self.substep_list[1]
         self.substep_camera = self.substep_list[2]
-        for i in [os.path.join(self.course_path, self.lesson_with_content, self.step_with_content, substep)
-                          for substep in self.substep_list]:
+        for i in [os.path.join(self.course_path, self.lesson_with_content, self.step_with_content, substep) for substep in self.substep_list]:
             os.makedirs(i)
         open(os.path.join(self.course_path, self.lesson_with_content, self.step_with_content, self.substep_camera, SUBSTEP_CAMERA_NAME), 'a')
         open(os.path.join(self.course_path, self.lesson_with_content, self.step_with_content, self.substep_screen, SUBSTEP_SCREEN_NAME), 'w').close()
@@ -76,10 +81,68 @@ class TestExample(TestCase):
                     succ_but_mask += 5
             self.assertEqual(succ_but_mask, 9)
 
-    def test_rename_objects(self):
+    def test_rename_objects_and_parenting(self):
         with self.settings(SERVER_PATH_ROOT=self.SERVER_PATH_ROOT):
             course = Course(author=self.profile, name=self.course_name)
             lesson = course.lessons[0]
             items = len(lesson.steps)
-            lesson._add_child('new_added_lesson')
+            lesson._add_child('new_added_step')
             self.assertEqual(len(lesson.steps), items+1)
+            self.assertEqual(lesson.steps[-1].name, 'new_added_step')
+
+            step = lesson.steps[0]
+            self.assertEqual(len(step.substeps), 0)
+            step._add_child('new_added_substep')
+            self.assertEqual(len(step.substeps), 1)
+            self.assertEqual(step.substeps[-1].name, 'new_added_substep')
+
+            self.assertEqual(step.substeps[-1].parent_name, 'new_added_step')
+            self.assertEqual(step.parent_name, lesson.name)
+
+
+# TODO! REWRITE URLS TO reverse
+
+class TestAPIPermissions(TestCase):
+    def setUp(self):
+        password = 'mypassword'
+        self.test_admin = User.objects.create_superuser('myadmin', 'myadmin@test.com', password)
+        self.test_user = User.objects.create(username='myuser', email='myuser@test.com', password=password)
+        token = Token.objects.get(user__username=self.test_user)
+        self.client = APIClient()
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+        self.SERVER_PATH_ROOT = tempfile.mkdtemp()
+
+    def tearDown(self):
+        shutil.rmtree(self.SERVER_PATH_ROOT)
+
+    def test_not_allowed_for_not_logged(self):
+        unauthorized_client = APIClient()
+        for r in ['/api/courses/', '/api/courses/1/', '/api/users/', '/api/users/1/', '/api/users/i/']:
+            res = unauthorized_client.get(r)
+            self.assertEqual(res.status_code,  status.HTTP_401_UNAUTHORIZED)
+
+    def test_authorized_user_is_correct(self):
+        token = Token.objects.get(user__username=self.test_user)
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+        res = client.get('/api/users/i/')
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data['username'], self.test_user.username)
+
+    def test_authorized_user_can_see_only_self(self):
+        res = self.client.get('/api/users/')
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data['username'], self.test_user.username)
+        res = self.client.get('/api/users/{user}/'.format(user=self.test_user.id))
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data['username'], self.test_user.username)
+
+    def test_can_create_course_correct(self):
+        with self.settings(SERVER_PATH_ROOT=self.SERVER_PATH_ROOT):
+            token = Token.objects.get(user__username=self.test_user)
+            client = APIClient()
+            data = {'name': 'test_course'}
+            res = self.client.post('/api/courses/', data, format='json')
+            self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+            res = self.client.get('/api/courses/')
+            self.assertEqual(res.data[0]['name'], 'test_course')

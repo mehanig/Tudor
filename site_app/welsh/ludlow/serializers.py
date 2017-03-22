@@ -18,10 +18,13 @@ class CourseSerializer(serializers.ModelSerializer):
     def get_course_lessons(self, obj):
         return [{'name': o.name,
                  'local_path': o.local_path,
+                 'parent_name': o.parent_name,
                  'steps': [{'name': s.name,
                             'local_path': s.local_path,
+                            'parent_name': s.parent_name,
                             'substeps': [{'name': ss.name,
                                           'local_path': ss.local_path,
+                                          'parent_name': ss.parent_name,
                                           'substep_screen': ss.has_substep_screen,
                                           'substep_camera': ss.has_substep_camera
                             } for ss in s.substeps],

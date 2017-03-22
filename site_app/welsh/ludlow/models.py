@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -9,13 +10,14 @@ from .const import *
 
 
 class ServerFileSystemFolder:
-    def __init__(self, local_path, SubFoldersItemsClassName=None, attr_name=None):
+    def __init__(self, local_path, SubFoldersItemsClassName=None, attr_name=None, parent=None):
         self.local_path = local_path
         self._className = SubFoldersItemsClassName
         self._attr_name = attr_name
         self.name = os.path.basename(os.path.normpath(local_path))
+        self.parent_name = parent.name
         if SubFoldersItemsClassName is not None:
-            setattr(self, attr_name, [SubFoldersItemsClassName(local_path) for local_path in filter(os.path.isdir,
+            setattr(self, attr_name, [SubFoldersItemsClassName(local_path, parent=self) for local_path in filter(os.path.isdir,
                              [os.path.join(self.local_path, item_path) for item_path in os.listdir(self.local_path)])])
 
     def rename(self, new_name):
@@ -28,8 +30,11 @@ class ServerFileSystemFolder:
 
     def _update_childs(self):
         if self._className is not None and self._attr_name is not None:
-            setattr(self, self._attr_name, [self._className(local_path) for local_path in filter(os.path.isdir,
+            setattr(self, self._attr_name, [self._className(local_path, parent=self) for local_path in filter(os.path.isdir,
                 [os.path.join(self.local_path, item_path) for item_path in os.listdir(self.local_path)])])
+
+    def add(self, name):
+        return self._add_child(name)
 
     def __repr__(self):
         return self.__class__.__name__ + ' : at' + str(self.local_path)
@@ -39,18 +44,18 @@ class ServerFileSystemFolder:
 
 
 class Lesson(ServerFileSystemFolder):
-    def __init__(self, local_path):
-        super().__init__(local_path, Step, 'steps')
+    def __init__(self, local_path, parent=None):
+        super().__init__(local_path, Step, 'steps', parent=parent)
 
 
 class Step(ServerFileSystemFolder):
-    def __init__(self, local_path):
-        super().__init__(local_path, SubStep, 'substeps')
+    def __init__(self, local_path, parent=None):
+        super().__init__(local_path, SubStep, 'substeps', parent=parent)
 
 
 class SubStep(ServerFileSystemFolder):
-    def __init__(self, local_path):
-        super().__init__(local_path)
+    def __init__(self, local_path, parent=None):
+        super().__init__(local_path, None, parent=parent)
         self.has_substep_screen = os.path.exists(os.path.join(self.local_path, SUBSTEP_SCREEN_NAME))
         self.has_substep_camera = os.path.exists(os.path.join(self.local_path, SUBSTEP_CAMERA_NAME))
 
@@ -59,7 +64,7 @@ class SubStep(ServerFileSystemFolder):
 
 
 class Profile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True)
 
     def __repr__(self):
         return 'Profile: ' + str(self.user)
@@ -67,7 +72,7 @@ class Profile(models.Model):
 
 class Course(models.Model):
     author = models.ForeignKey(Profile, null=False, blank=False)
-    name = models.CharField(max_length=256)
+    name = models.CharField(max_length=256, db_index=True)
 
     # Dont touch, it will be OK by default
     # TODO: TEST IT!
@@ -79,7 +84,7 @@ class Course(models.Model):
 
     @property
     def lessons(self):
-        return [Lesson(full_item_path) for full_item_path in
+        return [Lesson(full_item_path, parent=self) for full_item_path in
                 filter(os.path.isdir, [os.path.join(self.local_path, item_path) for item_path in os.listdir(self.local_path)])]
 
     def __repr__(self):
@@ -87,3 +92,9 @@ class Course(models.Model):
 
     def __str__(self):
         return self.__repr__()
+
+    def save(self, *args, **kwargs):
+        if Course.objects.filter(author=self.author).filter(name=self.name).count() == 0:
+            super(Course, self).save(*args, **kwargs)
+        else:
+            raise ValidationError('Course already exist')

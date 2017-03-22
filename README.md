@@ -43,3 +43,9 @@ npm install
 ```
 ./node_modules/webpack/bin/webpack.js --config webpack.prod.config.js
 ```
+
+
+##### DEV STUFF
+
+1) Auth is server using oauth tokens, so to test, you need to set correct headers:
+`curl -X GET http://127.0.0.1:8000/api/example/ -H 'Authorization: Token <token>`
