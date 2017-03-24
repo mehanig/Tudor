@@ -12,6 +12,8 @@ class UserAction:
         try:
             if request.data['action'] == Ops.ADD:
                 print("ADD")
+                self.result = ServerFileSystemFolder.add_in_course(course=course,
+                                                                   new_path=request.data['new_path'])
             elif request.data['action'] == Ops.RENAME:
                 print("RENAME")
                 self.result = ServerFileSystemFolder.rename_in_course(course=course,

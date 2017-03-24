@@ -221,3 +221,48 @@ class TestCourseActions(TestCase):
             res = self.client.put('/api/courses/{course_id}/'.format(course_id=self.course.id), data, format='json')
             self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
             self.assertEqual(self.course.lessons[1].steps[1].substeps[1].local_path, old_path + '_new')
+
+    def test_add_lesson(self):
+        with self.settings(SERVER_PATH_ROOT=self.SERVER_PATH_ROOT):
+            course_path = self.course.local_path
+            new_lesson_name = "new_created_lesson"
+            data = {"action": "add",
+                    "new_path":  os.path.join(course_path, new_lesson_name)}
+            res = self.client.put('/api/courses/{course_id}/'.format(course_id=self.course.id), data, format='json')
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+            self.assertIn(new_lesson_name, [l.name for l in self.course.lessons])
+
+            res = self.client.put('/api/courses/{course_id}/'.format(course_id=self.course.id), data, format='json')
+            self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+            self.assertIn(new_lesson_name, [l.name for l in self.course.lessons])
+
+    def test_add_step(self):
+        with self.settings(SERVER_PATH_ROOT=self.SERVER_PATH_ROOT):
+            lesson_path = self.course.lessons[0].local_path
+            new_step_name = "new_created_step"
+            data = {"action": "add",
+                    "new_path":  os.path.join(lesson_path, new_step_name)}
+            res = self.client.put('/api/courses/{course_id}/'.format(course_id=self.course.id), data, format='json')
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+            self.assertIn(new_step_name, [s.name for s in self.course.lessons[0].steps])
+
+            res = self.client.put('/api/courses/{course_id}/'.format(course_id=self.course.id), data, format='json')
+            self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+            self.assertIn(new_step_name, [s.name for s in self.course.lessons[0].steps])
+
+    def test_add_substep(self):
+        with self.settings(SERVER_PATH_ROOT=self.SERVER_PATH_ROOT):
+            step_path = self.course.lessons[1].steps[0].local_path
+            new_substep_name = "new_created_substep"
+            data = {"action": "add",
+                    "new_path":  os.path.join(step_path, new_substep_name)}
+            res = self.client.put('/api/courses/{course_id}/'.format(course_id=self.course.id), data, format='json')
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+            self.assertIn(new_substep_name, [s.name for s in self.course.lessons[1].steps[0].substeps])
+
+            res = self.client.put('/api/courses/{course_id}/'.format(course_id=self.course.id), data, format='json')
+            self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+            self.assertIn(new_substep_name, [s.name for s in self.course.lessons[1].steps[0].substeps])

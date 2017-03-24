@@ -36,6 +36,19 @@ class ServerFileSystemFolder:
             print("Paths are inconsistent or not related to Course")
             return False
 
+    @classmethod
+    def add_in_course(cls, course, new_path):
+        if new_path.startswith(course.local_path):
+            if not os.path.exists(new_path):
+                os.makedirs(new_path)
+                return True
+            else:
+                print("Object Already exist")
+                return False
+        else:
+            print("Path is inconsistent or not related to Course. Can't create.")
+            return False
+
     def _add_child(self, name):
         if not os.path.exists(os.path.join(self.local_path, name)):
             os.makedirs(os.path.join(self.local_path, name))
