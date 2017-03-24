@@ -7,6 +7,7 @@ from django.conf import settings
 from django.contrib.auth.models import User
 
 from .const import *
+from .utils import gen_trash_path
 
 
 class ServerFileSystemFolder:
@@ -47,6 +48,24 @@ class ServerFileSystemFolder:
                 return False
         else:
             print("Path is inconsistent or not related to Course. Can't create.")
+            return False
+
+    # It moves files to users Trash Bin (not system one)!
+    @classmethod
+    def delete_in_course(cls, course, path):
+        if path.startswith(course.local_path):
+            if os.path.exists(path):
+                trash_path = gen_trash_path(course=course, path=path)
+                print(trash_path)
+                if not os.path.exists(os.path.dirname(os.path.normpath(trash_path))):
+                    os.makedirs(os.path.dirname(os.path.normpath(trash_path)))
+                os.rename(src=path, dst=trash_path)
+                return True
+            else:
+                print('No object at original path')
+                return False
+        else:
+            print("Path to delete is inconsistent. Can't delete.")
             return False
 
     def _add_child(self, name):
@@ -91,6 +110,10 @@ class SubStep(ServerFileSystemFolder):
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=True)
+
+    @property
+    def local_path(self):
+        return os.path.join(settings.SERVER_PATH_ROOT, str(self.user.username))
 
     def __repr__(self):
         return 'Profile: ' + str(self.user)

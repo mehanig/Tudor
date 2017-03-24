@@ -21,6 +21,8 @@ class UserAction:
                                                                       new_path=request.data['new_path'])
             elif request.data['action'] == Ops.DELETE:
                 print("DELETE")
+                self.result = ServerFileSystemFolder.delete_in_course(course=course,
+                                                                      path=request.data['path'])
             else:
                 raise Exception('No Action Type')
 

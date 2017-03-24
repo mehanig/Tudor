@@ -266,3 +266,61 @@ class TestCourseActions(TestCase):
             res = self.client.put('/api/courses/{course_id}/'.format(course_id=self.course.id), data, format='json')
             self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
             self.assertIn(new_substep_name, [s.name for s in self.course.lessons[1].steps[0].substeps])
+
+    def test_delete_lesson(self):
+        with self.settings(SERVER_PATH_ROOT=self.SERVER_PATH_ROOT):
+            lesson_path = self.course.lessons[0].local_path
+            lesson_name = self.course.lessons[0].name
+            lesson_prefix_in_trash_bin = self.course.name + "_" + lesson_name
+            data = {"action": "delete",
+                    "path":  lesson_path}
+            res = self.client.put('/api/courses/{course_id}/'.format(course_id=self.course.id), data, format='json')
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+            self.assertNotIn(lesson_path, [l.local_path for l in self.course.lessons])
+
+            trash_bin_path = os.path.join(self.course.author.local_path, TRASH_BIN)
+            trash_bin_files = os.listdir(trash_bin_path)
+            self.assertTrue(any([l.startswith(lesson_prefix_in_trash_bin) for l in trash_bin_files]))
+
+            res = self.client.put('/api/courses/{course_id}/'.format(course_id=self.course.id), data, format='json')
+            self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+            self.assertNotIn(lesson_path, [l.local_path for l in self.course.lessons])
+
+    def test_delete_step(self):
+        with self.settings(SERVER_PATH_ROOT=self.SERVER_PATH_ROOT):
+            step_path = self.course.lessons[1].steps[0].local_path
+            step_name = self.course.lessons[1].steps[0].name
+            step_prefix_in_trash_bin = self.course.name + "_" + step_name
+            data = {"action": "delete",
+                    "path":  step_path}
+            res = self.client.put('/api/courses/{course_id}/'.format(course_id=self.course.id), data, format='json')
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+            self.assertNotIn(step_path, [l.local_path for l in self.course.lessons[1].steps])
+
+            trash_bin_path = os.path.join(self.course.author.local_path, TRASH_BIN)
+            trash_bin_files = os.listdir(trash_bin_path)
+            self.assertTrue(any([s.startswith(step_prefix_in_trash_bin) for s in trash_bin_files]))
+
+            res = self.client.put('/api/courses/{course_id}/'.format(course_id=self.course.id), data, format='json')
+            self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+            self.assertNotIn(step_path, [s.local_path for s in self.course.lessons[1].steps])
+
+    def test_delete_substep(self):
+        with self.settings(SERVER_PATH_ROOT=self.SERVER_PATH_ROOT):
+            substep_path = self.course.lessons[1].steps[1].substeps[0].local_path
+            substep_name = self.course.lessons[1].steps[1].substeps[0].name
+            substep_prefix_in_trash_bin = self.course.name + "_" + substep_name
+            data = {"action": "delete",
+                    "path":  substep_path}
+            res = self.client.put('/api/courses/{course_id}/'.format(course_id=self.course.id), data, format='json')
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+            self.assertNotIn(substep_path, [l.local_path for l in self.course.lessons[1].steps[1].substeps])
+
+            trash_bin_path = os.path.join(self.course.author.local_path, TRASH_BIN)
+            trash_bin_files = os.listdir(trash_bin_path)
+            self.assertTrue(any([l.startswith(substep_prefix_in_trash_bin) for l in trash_bin_files]))
+
+            res = self.client.put('/api/courses/{course_id}/'.format(course_id=self.course.id), data, format='json')
+            self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+            self.assertNotIn(substep_path, [l.local_path for l in self.course.lessons[1].steps[1].substeps])
+
