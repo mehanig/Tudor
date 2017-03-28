@@ -14,6 +14,7 @@ class UserSerializer(serializers.ModelSerializer):
 class CourseSerializer(serializers.ModelSerializer):
 
     lessons = serializers.SerializerMethodField('get_course_lessons')
+    key = serializers.SerializerMethodField('get_id_as_key')
 
     def get_course_lessons(self, obj):
         return [{'name': o.name,
@@ -30,9 +31,12 @@ class CourseSerializer(serializers.ModelSerializer):
                             } for ss in s.substeps],
                            } for s in o.steps]} for o in obj.lessons]
 
+    def get_id_as_key(self, obj):
+        return obj.id
+
     class Meta:
         model = Course
-        fields = ('id', 'author', 'name', 'lessons',)
+        fields = ('id', 'key', 'author', 'name', 'lessons')
 
 
 class LessonSerializer(serializers.ModelSerializer):

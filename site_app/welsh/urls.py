@@ -26,6 +26,9 @@ urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^$', generic.TemplateView.as_view(template_name='main_page.html')),
     url(r'^api/', include('welsh.ludlow.urls')),
+
+    # React App urls
+    url(r'^', include('york.urls'))
 ]
 
 if settings.DEBUG:

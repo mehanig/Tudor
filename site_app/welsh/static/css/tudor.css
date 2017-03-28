@@ -1,0 +1,15 @@
+.app-content {
+    max-width: 1024px;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    margin: 50px auto;
+}
+
+.course-card__main {
+    margin: 15px 0 15px;
+}
+
+.lesson-folder__main {
+    margin: 15px 0 15px;
+}
