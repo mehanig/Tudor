@@ -11,6 +11,8 @@ import {
 import * as axios from "axios"
 import * as actions from "../actions/mainActions"
 
+import ItemControls from "../components/ItemControls"
+
 import { Classes, ITreeNode, Tooltip, Tree } from "@blueprintjs/core";
 
 @connect(state => ({state}))
@@ -22,7 +24,7 @@ export default class Courses extends React.Component {
         const course = courses.find((el) => el.key == id);
         // const tooltipLabel = <Tooltip content="An eye!"><span className="pt-icon-standard pt-icon-eye-open"/></Tooltip>;
         const longLabel = "Organic meditation gluten-free, sriracha VHS drinking vinegar beard man.";
-        this.state = {course_name: course.name, nodes: course.lessons, selected: null};
+        this.state = {course_name: course.name, nodes: course.lessons, displaySelected: null};
 
         // UPDATE TO ITREE SCHEMA
         this.state.nodes.map((l) => {
@@ -83,18 +85,29 @@ export default class Courses extends React.Component {
         });
     }
 
+    delayedSelectedUpdate(nodeData) {
+        if (nodeData) {
+            setTimeout((nodeData) => {
+                if (this.state.selectedNotShown && this.state.selectedNotShown.local_path === nodeData.local_path) {
+                    this.setState({...this.state, displaySelected: nodeData})
+                }
+            }, 600, nodeData);
+        } else {
+            setTimeout(() => this.setState({...this.state, displaySelected: false, selectedNotShown: null}), 500);
+        }
+    }
+
     handleNodeClick(nodeData, _nodePath, e) {
-        console.log("los");
         const originallySelected = nodeData.isSelected;
         this.forEachNode(this.state.nodes, (n) => n.isSelected = false);
         nodeData.isSelected = originallySelected == null ? true : !originallySelected;
         if (nodeData.isSelected) {
-            console.log(nodeData.label);
-            this.setState({...this.state, selected: nodeData.label});
+            this.delayedSelectedUpdate(nodeData);
+            this.setState({...this.state, selectedNotShown: nodeData});
         } else {
-            this.setState({...this.state, selected: null});
+            this.delayedSelectedUpdate(null);
+            this.setState({...this.state, selectedNotShown: null});
         }
-        // this.setState(this.state);
     }
 
     handleNodeCollapse(nodeData) {
@@ -119,9 +132,7 @@ export default class Courses extends React.Component {
         return (
             <div>
                 <div><h3>{this.state.course_name}</h3></div>
-            <div>
-                <h1>Selected: {this.state.selected}, Record? </h1>
-            </div>
+            <ItemControls item={this.state.displaySelected}/>
             <Tree
                 contents={this.state.nodes}
                 onNodeClick={this.handleNodeClick}
@@ -138,7 +149,6 @@ export default class Courses extends React.Component {
         if (nodes == null) {
             return;
         }
-        console.log(nodes);
         for (let node of nodes) {
             callback(node);
             this.forEachNode(node.childNodes, callback);

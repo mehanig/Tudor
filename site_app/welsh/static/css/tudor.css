@@ -13,3 +13,19 @@
 .lesson-folder__main {
     margin: 15px 0 15px;
 }
+
+
+.tudor-item-controls {
+    display: flex;
+    margin: 20px 0 20px 0;
+}
+
+.tudor-item-controls__msg {
+    flex-grow: 1;
+    margin-left: 20px;
+}
+
+.tudor-item-controls__controls {
+    margin-right: auto;
+
+}
