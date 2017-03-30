@@ -34,9 +34,9 @@ export default class Courses extends React.Component {
                 <div><h3>List of your Courses</h3></div>
                 {courses.map(function(course) {
                     const url = `/course/${course.key.toString()}`;
-                    return <div className="pt-card pt-elevation-0 pt-interactive course-card__main" key={course.key.toString()}>
-                        <Link to={url}><h5>{course.name}</h5></Link>
-                    </div>
+                    return <Link to={url} key={course.key.toString()}><div className="pt-card pt-elevation-0 pt-interactive course-card__main">
+                        <h5>{course.name}</h5>
+                    </div></Link>
                 })}
             </div>
         )
