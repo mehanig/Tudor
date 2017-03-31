@@ -10,6 +10,7 @@ import {
 
 import * as axios from "axios"
 import * as actions from "../actions/mainActions"
+import AuthHelper from "../components/AuthHelper"
 
 @connect(state => ({state}))
 export default class Courses extends React.Component {
@@ -20,7 +21,7 @@ export default class Courses extends React.Component {
     componentDidMount() {
         const token = this.props.state.main.globalHeaderToken;
         const {dispatch} = this.props;
-        axios.get('/api/courses', {'headers':{'Authorization': 'Token ' + token}}).then((res)=>{
+        axios.get('/api/courses', {'headers':{'Authorization': 'Token ' + localStorage.token}}).then((res)=>{
             dispatch(actions.setCourses(res.data));
         }).catch((res)=> {
             console.log(res.data);

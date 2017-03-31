@@ -12,5 +12,6 @@ urlpatterns = router.urls
 
 urlpatterns += [
     url(r'^courses$', generic.TemplateView.as_view(template_name='main_page.html')),
+    url(r'^course/(?P<course_id>\w+)', generic.TemplateView.as_view(template_name='main_page.html')),
     url(r'^settings$', generic.TemplateView.as_view(template_name='main_page.html')),
 ]

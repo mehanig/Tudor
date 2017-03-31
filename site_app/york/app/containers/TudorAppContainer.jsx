@@ -17,6 +17,7 @@ import Courses from "../components/Courses"
 import Course from "../components/Course"
 import TopBarMenu from "../components/TopBarMenu"
 import Profile from "../components/Profile"
+import AuthHelper from "../components/AuthHelper"
 import * as actions from "../actions/mainActions"
 
 import * as axios from "axios"
@@ -27,47 +28,6 @@ const isAuth = {
         delete localStorage.token;
     }
 }
-
-@connect(state => ({state}))
-class AuthHelper extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = { data: null }
-    }
-
-    componentDidMount() {
-        let {dispatch} = this.props;
-        if (localStorage.token) {
-            dispatch(actions.setGlobalHeaderToken(localStorage.token));
-            axios.get('api/users/i/', {'headers':{'Authorization': 'Token ' + localStorage.token}}).then(function (data) {
-                this.setState({data: data.data});
-            }.bind(this)).catch(() => {
-                this.setState({data: {error: true}});
-            });
-        } else {
-            this.setState({data: {error: true}});
-        }
-
-    }
-
-    render() {
-        if (_.has(this.state, ['data', 'username'])) {
-                return <Redirect to={{
-                    pathname: '/courses',
-                    state: {from: '/'}
-                }}/>
-        } else if (_.has(this.state, ['data', 'error'])) {
-                return <Redirect to={{
-                    pathname: '/login',
-                    state: {from: '/'}
-                }}/>
-        } else {
-            return <div>Loading...</div>;
-        }
-    }
-}
-
-const Public = () => <h3>Tudor Studio</h3>
 
 class Login extends React.Component {
     constructor(props) {
