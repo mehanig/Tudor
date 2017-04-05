@@ -11,16 +11,22 @@ import {
 import * as axios from "axios"
 import * as actions from "../actions/mainActions"
 
+import RenamePopup from "../components/RenamePopup";
+
 import { Classes, Menu, MenuDivider, MenuItem } from "@blueprintjs/core";
 
 @connect(state => ({state}))
 export default class ItemControls extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {item: props.item};
+        this.state = {item: props.item,
+                      showRename: false,
+                      showDelete: false};
 
         this.stateOfSelected = this.stateOfSelected.bind(this);
         this.controlsOfSelected = this.controlsOfSelected.bind(this);
+        this.handleDelete =  this.handleDelete.bind(this);
+        this.handleRename = this.handleRename.bind(this);
     }
 
     componentDidMount() {
@@ -37,16 +43,30 @@ export default class ItemControls extends React.Component {
             return (
                 <div className="pt-callout pt-intent-success tudor-item-controls__msg pt-icon-info-sign">
                     <h5>Selected object: {this.state.item.label}</h5>
-                    Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ex, delectus!
+                    {this.state.item.label} at {this.state.item.local_path}
                 </div>
             )
         } else {
             return (
                 <div className="pt-callout pt-intent-primary tudor-item-controls__msg pt-icon-info-sign">
-                    <h5>Selected object:</h5>
-                    Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ex, delectus!
+                    <h5>No object selected</h5>
+                    <br/>
                 </div>
             )
+        }
+    }
+
+    handleRename() {
+        let {dispatch} = this.props;
+        if (this.state.item) {
+            dispatch(actions.setRenamePopupOpen());
+        }
+    }
+
+    handleDelete() {
+        let {dispatch} = this.props;
+        if (this.state.item) {
+            // this.setState({...this.state, showDelete: true});
         }
     }
 
@@ -54,14 +74,14 @@ export default class ItemControls extends React.Component {
         return (
             <div className="tudor-item-controls__controls">
                 <Menu className={`docs-inline-example ${Classes.ELEVATION_1}`}>
-                    <MenuItem iconName="new-text-box" text="New text box" />
-                    <MenuItem iconName="new-object" text="New object" />
-                    <MenuItem iconName="new-link" text="New link" />
+                    <RenamePopup item={this.state.item} course_id={this.props.course_id}/>
+                    <MenuItem iconName="edit" text="Rename" onClick={this.handleRename}/>
+                    <MenuItem iconName="trash" text="Delete" onClick={this.handleDelete} />
                     <MenuDivider />
                     <MenuItem
                         iconName="cog"
-                        label={<span className="pt-icon-standard pt-icon-share" />}
-                        text="Settings..."
+                        label={<span className="pt-icon-annotation pt-icon-share" />}
+                        text="Notes2..."
                     />
                 </Menu>
             </div>

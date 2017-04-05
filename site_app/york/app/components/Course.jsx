@@ -72,7 +72,6 @@ export default class Courses extends React.Component {
         this.handleNodeCollapse = this.handleNodeCollapse.bind(this);
         this.handleNodeExpand = this.handleNodeExpand.bind(this);
         this.handleDoubleClick = this.handleDoubleClick.bind(this);
-
     }
 
     componentDidMount() {
@@ -132,7 +131,7 @@ export default class Courses extends React.Component {
         return (
             <div>
                 <div><h3>{this.state.course_name}</h3></div>
-            <ItemControls item={this.state.displaySelected}/>
+            <ItemControls item={this.state.displaySelected} course_id={this.props.match.params.id}/>
             <Tree
                 contents={this.state.nodes}
                 onNodeClick={this.handleNodeClick}

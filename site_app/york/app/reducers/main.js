@@ -2,7 +2,8 @@ import * as Actions from "../actions/mainActions"
 
 const initialState = {
     courses: [],
-    globalHeaderToken: false
+    globalHeaderToken: false,
+    renamePopup: false
 };
 
 export default function submissions(state = initialState, action = {}) {
@@ -13,6 +14,10 @@ export default function submissions(state = initialState, action = {}) {
             return {...state, courses: action.courses};
         case Actions.SET_GLOBAL_HEADER_TOKEN:
             return {...state, globalHeaderToken: action.token};
+        case Actions.CLOSE_RENAME_POPUP:
+            return {...state, renamePopup: false};
+        case Actions.OPEN_RENAME_POPUP:
+            return {...state, renamePopup: true};
         default:
             return state
     }

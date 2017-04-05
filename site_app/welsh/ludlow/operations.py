@@ -1,3 +1,4 @@
+import os
 from welsh.ludlow.models import *
 
 
@@ -16,9 +17,12 @@ class UserAction:
                                                                    new_path=request.data['new_path'])
             elif request.data['action'] == Ops.RENAME:
                 print("RENAME")
+                new_name = request.data['new_name']
+                old_path = request.data['old_path']
+                new_path = os.path.join(os.path.dirname(old_path), new_name)
                 self.result = ServerFileSystemFolder.rename_in_course(course=course,
-                                                                      old_path=request.data['old_path'],
-                                                                      new_path=request.data['new_path'])
+                                                                      old_path=old_path,
+                                                                      new_path=new_path)
             elif request.data['action'] == Ops.DELETE:
                 print("DELETE")
                 self.result = ServerFileSystemFolder.delete_in_course(course=course,

@@ -27,5 +27,13 @@
 
 .tudor-item-controls__controls {
     margin-right: auto;
+}
 
+.tudor-popup {
+    z-index: 20;
+    width: 500px;
+    position: fixed;
+    top: 250px;
+    left: 50%;
+    margin-left: -250px;
 }
