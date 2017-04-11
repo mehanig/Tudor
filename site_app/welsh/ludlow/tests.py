@@ -185,7 +185,7 @@ class TestCourseActions(TestCase):
             old_path = self.course.lessons[0].local_path
             data = {"action": "rename",
                     "old_path": old_path,
-                    "new_path": old_path + "_new"}
+                    "new_name": self.course.lessons[0].name + "_new"}
             res = self.client.put('/api/courses/{course_id}/'.format(course_id=self.course.id), data, format='json')
             self.assertEqual(res.status_code, status.HTTP_200_OK)
             self.assertEqual(self.course.lessons[0].local_path, old_path + '_new')
@@ -199,7 +199,7 @@ class TestCourseActions(TestCase):
             old_path = self.course.lessons[1].steps[1].local_path
             data = {"action": "rename",
                     "old_path": old_path,
-                    "new_path": old_path + "_new"}
+                    "new_name": self.course.lessons[1].steps[1].name + "_new"}
             res = self.client.put('/api/courses/{course_id}/'.format(course_id=self.course.id), data, format='json')
             self.assertEqual(res.status_code, status.HTTP_200_OK)
             self.assertEqual(self.course.lessons[1].steps[1].local_path, old_path + '_new')
@@ -213,7 +213,7 @@ class TestCourseActions(TestCase):
             old_path = self.course.lessons[1].steps[1].substeps[1].local_path
             data = {"action": "rename",
                     "old_path": old_path,
-                    "new_path": old_path + "_new"}
+                    "new_name": self.course.lessons[1].steps[1].substeps[1].name + "_new"}
             res = self.client.put('/api/courses/{course_id}/'.format(course_id=self.course.id), data, format='json')
             self.assertEqual(res.status_code, status.HTTP_200_OK)
             self.assertEqual(self.course.lessons[1].steps[1].substeps[1].local_path, old_path + '_new')
