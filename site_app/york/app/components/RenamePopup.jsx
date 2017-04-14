@@ -47,7 +47,7 @@ export default class RenamePopup extends React.Component {
 
     //TODO rewrite to make async actions
     handleRename() {
-        // let {dispatch} = this.props;
+        let {dispatch} = this.props;
         // dispatch(actions.setRename());
         const token = this.props.state.main.globalHeaderToken;
         const { course_id } = this.props;
@@ -56,8 +56,19 @@ export default class RenamePopup extends React.Component {
             "old_path": this.props.item.local_path,
             "new_name": this.state.new_name
         };
+        dispatch(actions.setIsLoadingTrue());
         axios.put(`/api/courses/${course_id}/`, data, {'headers':{'Authorization': 'Token ' + localStorage.token}}).then((res)=> {
-            console.log("here");
+            this.handleClose();
+            axios.get(`/api/courses/${course_id}/`, {'headers':{'Authorization': 'Token ' + localStorage.token}}).then((res) => {
+                console.log("___");
+                console.log(res);
+                const course_data = res.data;
+                dispatch(actions.setCourseStructure(course_id, course_data));
+                setTimeout( () => {dispatch(actions.setIsLoadingFalse())}, 2000);
+            }).catch((res) => {
+                console.log(res);
+                alert("Error fetching course data")
+            });
         }).catch((res)=> {
             console.log(res.data);
         });

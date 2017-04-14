@@ -99,11 +99,13 @@ export default class TudorAppContainer extends React.Component {
    }
 
     render() {
+        const {isLoadingState} = this.props.state.main;
         return (
             <Router>
                 <div>
                     <AuthHelper/>
                     <TopBarMenu/>
+                    { isLoadingState ? <div className="tudor-global__loading_state"></div> : null }
                     <div className="app-content">
                         <Route exact path="/" component={AuthHelper}/>
                         <Route path="/login" component={Login}/>
