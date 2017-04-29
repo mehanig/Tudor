@@ -22,9 +22,9 @@ export default function submissions(state = initialState, action = {}) {
         case Actions.OPEN_RENAME_POPUP:
             return {...state, renamePopup: true};
         case Actions.SET_COURSE_STRUCTURE:
-            const new_state = state;
-            new_state.courses[action.course_id] = action.course_data;
-            return {...new_state};
+            let id = state.courses.findIndex((el) => el.key == action.course_id);
+            state.courses[id] = action.course_data;
+            return {...state};
         default:
             return state
     }

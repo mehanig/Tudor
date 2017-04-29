@@ -96,6 +96,64 @@ export default class Courses extends React.Component {
         }
     }
 
+    //TODO: Refactor it!
+    componentWillReceiveProps(nextProps) {
+        const id = nextProps.match.params.id;
+        const courses = nextProps.state.main.courses;
+        const course = courses.find((el) => el.key == id);
+        if (JSON.stringify(course.lessons) !== JSON.stringify(this.state.nodes)) {
+            console.log("DIFF!!!");
+            let nodes = course.lessons;
+            nodes.map((l) => {
+                l.label = l.name;
+                l.key = l.name;
+                l.iconName = "box";
+                l.childNodes = l.steps;
+                l.hasCaret = false;
+                l.isSelected = false;
+                l.childNodes.map((step) => {
+                    step.label = step.name;
+                    step.iconName = "folder-close";
+                    step.childNodes = step.substeps;
+                    step.hasCaret = false;
+                    step.isSelected = false;
+                    if (step.childNodes.length) {
+                        step.hasCaret = true;
+                    }
+                    step.childNodes.map((ss) => {
+                        ss.label = ss.name;
+                        ss.iconName = "film";
+                        step.isSelected = false;
+                        if (ss.substep_screen || ss.substep_camera) {
+                            ss.hasCaret = true;
+                            ss.childNodes = [];
+                            if (ss.substep_screen) {
+                                ss.childNodes.push({label: "screen_cast", iconName: "desktop"});
+                            }
+                            if (ss.substep_camera) {
+                                ss.childNodes.push({label: "camera", iconName: "camera"});
+                            }
+                        }
+                    });
+                });
+                if (!l.childNodes.length) {
+                    l.label += "   (empty)";
+                } else {
+                    l.hasCaret = true;
+                }
+            });
+
+            let i = 0;
+            this.forEachNode(nodes, (n) => n.id = i++);
+
+            this.setState({
+                ...this.state,
+                course_name: course.name,
+                nodes
+            });
+        }
+    }
+
     handleNodeClick(nodeData, _nodePath, e) {
         const originallySelected = nodeData.isSelected;
         this.forEachNode(this.state.nodes, (n) => n.isSelected = false);

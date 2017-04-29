@@ -11,7 +11,7 @@ Naming:
 
 
 ## How to run
-
+not implemented yet
 
 ## Install OSX
 1. install `pip install virtualenvwrapper`

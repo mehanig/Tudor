@@ -1,8 +1,10 @@
 from django.contrib.auth.models import User
-from rest_framework import status, permissions
+from rest_framework import status, permissions, authentication
 
 from rest_framework import viewsets, response, permissions
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from welsh.ludlow.models import Course, Profile
 from welsh.ludlow.operations import UserAction
@@ -73,3 +75,18 @@ class CourseViewSet(viewsets.ModelViewSet):
             print(e)
             return Response(status=status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_200_OK)
+
+
+@api_view()
+def start_recording(request):
+    return Response({"message": "Start Recording!"})
+
+
+@api_view()
+def stop_recording(request):
+    return Response({"message": "Stop Recording!"})
+
+
+@api_view()
+def status_recording(request):
+    return Response({"message": "Status Recording!"})
