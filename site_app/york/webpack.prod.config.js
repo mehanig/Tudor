@@ -33,4 +33,8 @@ config.module.loaders.push(
   { test: /\.jsx?$/, exclude: /node_modules/, loader: 'babel' }
 )
 
+config.module.loaders.push(
+  {test: /\.(eot|woff|woff2|ttf|svg|png|jpg)$/, loader: 'url-loader?limit=30000&name=/icon_font/[name].[ext]'}
+)
+
 module.exports = config
