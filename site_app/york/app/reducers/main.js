@@ -5,26 +5,38 @@ const initialState = {
     globalHeaderToken: false,
     renamePopup: false,
     isLoadingState: false,
+    addLessonPopup: false,
+    addStepPopup: false,
+    addSubStepPopup: false
 };
 
 export default function submissions(state = initialState, action = {}) {
     switch (action.type) {
         case Actions.SET_IS_LOADING_TRUE:
-            return {...state, isLoadingState: true};
+            return {...state, isLoadingState: true}
         case Actions.SET_IS_LOADING_FALSE:
-            return {...state, isLoadingState: false};
+            return {...state, isLoadingState: false}
         case Actions.SET_COURSES:
-            return {...state, courses: action.courses};
+            return {...state, courses: action.courses}
         case Actions.SET_GLOBAL_HEADER_TOKEN:
-            return {...state, globalHeaderToken: action.token};
+            return {...state, globalHeaderToken: action.token}
         case Actions.CLOSE_RENAME_POPUP:
-            return {...state, renamePopup: false};
+            return {...state, renamePopup: false}
         case Actions.OPEN_RENAME_POPUP:
-            return {...state, renamePopup: true};
+            return {...state, renamePopup: true}
+        case Actions.OPEN_ADDLESSON_POPUP:
+            return {...state, addLessonPopup: true}
+        case Actions.OPEN_ADDSTEP_POPUP:
+            return {...state, addStepPopup: true}
+        case Actions.OPEN_ADDSUBSTEP_POPUP:
+            return {...state, addSubStepPopup: true}
+        case Actions.CLOSE_ADDITEM_POPUP:
+            const flag = action.flag;
+            return {...state, [flag]: false}
         case Actions.SET_COURSE_STRUCTURE:
-            let id = state.courses.findIndex((el) => el.key == action.course_id);
-            state.courses[id] = action.course_data;
-            return {...state};
+            let id = state.courses.findIndex((el) => el.key == action.course_id)
+            state.courses[id] = action.course_data
+            return {...state}
         default:
             return state
     }

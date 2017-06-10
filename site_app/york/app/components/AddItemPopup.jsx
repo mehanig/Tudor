@@ -30,7 +30,7 @@ export default class RenamePopup extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            "new_name": ""
+            "new_name": "",
         };
         this.handleClose = this.handleClose.bind(this);
         this.handleRename = this.handleRename.bind(this);
@@ -42,7 +42,7 @@ export default class RenamePopup extends React.Component {
 
     handleClose() {
         let {dispatch} = this.props;
-        dispatch(actions.setRenamePopupClosed());
+        dispatch(actions.setAddItemPopupClose(this.props.isOpenFlagState));
     }
 
     //TODO rewrite to make async actions
@@ -52,26 +52,13 @@ export default class RenamePopup extends React.Component {
         const token = this.props.state.main.globalHeaderToken;
         const { course_id } = this.props;
         const data = {
-            "action": "rename",
-            "old_path": this.props.item.local_path,
+            "action": "add",
+            "new_path": this.props.item.local_path + "/" + this.state.new_name,
             "new_name": this.state.new_name
         };
         dispatch(actions.setIsLoadingTrue());
-        axios.put(`/api/courses/${course_id}/`, data, {'headers':{'Authorization': 'Token ' + localStorage.token}}).then((res)=> {
-            axios.get(`/api/courses/${course_id}/`, {'headers':{'Authorization': 'Token ' + localStorage.token}}).then((res) => {
-                console.log("___");
-                console.log(res);
-                const course_data = res.data;
-                dispatch(actions.setCourseStructure(course_id, course_data));
-                this.handleClose();
-                setTimeout( () => {dispatch(actions.setIsLoadingFalse())}, 1000);
-            }).catch((res) => {
-                console.log(res);
-                alert("Error fetching course data")
-            });
-        }).catch((res)=> {
-            console.log(res.data);
-        });
+        alert(data.new_path)
+        dispatch(actions.setIsLoadingFalse());
     }
 
     handleTextInputChange(e) {
@@ -85,9 +72,9 @@ export default class RenamePopup extends React.Component {
         return (
             <div>
                 { selected ?
-                    <Overlay onClose={this.handleClose} isOpen={this.props.state.main.renamePopup}>
+                    <Overlay onClose={this.handleClose} isOpen={this.props.state.main[this.props.isOpenFlagState]}>
                         <div className={classes} >
-                            <h3>Rename Object</h3>
+                            <h3>Create Object</h3>
                             <p>
                                 Enter new name for object:
                             </p>
@@ -99,7 +86,7 @@ export default class RenamePopup extends React.Component {
                             <Button onClick={this.handleRename} style={{ float: "right" }}>Rename</Button>
                         </div>
                     </Overlay>
-                :
+                    :
                     <div></div>
                 }
             </div>

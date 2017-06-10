@@ -13,60 +13,66 @@ import * as actions from "../actions/mainActions"
 
 import ItemControls from "../components/ItemControls"
 
-import { Classes, ITreeNode, Tooltip, Tree } from "@blueprintjs/core";
+import { Classes, ITreeNode, Tooltip, Tree } from "@blueprintjs/core"
+
+const genItreeSchema = function(nodes) {
+    nodes.map((l) => {
+        l.label = l.name;
+        l.key = l.name;
+        l.iconName = "box";
+        l.childNodes = l.steps;
+        l.hasCaret = false;
+        l.isSelected = false;
+        l.type = 'Lesson';
+        l.childNodes.map((step) => {
+            step.label = step.name;
+            step.iconName = "folder-close";
+            step.childNodes = step.substeps;
+            step.hasCaret = false;
+            step.isSelected = false;
+            step.type = 'Step';
+            if (step.childNodes.length) {
+                step.hasCaret = true;
+            }
+            step.childNodes.map((ss) => {
+                ss.label = ss.name;
+                ss.type = 'SubStep';
+                ss.iconName = "film";
+                step.isSelected = false;
+                if (ss.substep_screen || ss.substep_camera) {
+                    ss.hasCaret = true;
+                    ss.childNodes = [];
+                    if (ss.substep_screen) {
+                        ss.childNodes.push({label: "screen_cast", iconName: "desktop"});
+                    }
+                    if (ss.substep_camera) {
+                        ss.childNodes.push({label: "camera", iconName: "camera"});
+                    }
+                }
+            });
+        });
+        if (!l.childNodes.length) {
+            l.label += "   (empty)";
+        } else {
+            l.hasCaret = true;
+        }
+    });
+}
 
 @connect(state => ({state}))
 export default class Courses extends React.Component {
     constructor(props) {
         super(props);
         const courses = this.props.state.main.courses;
-        const id = this.props.match.params.id;
-        const course = courses.find((el) => el.key == id);
-        // const tooltipLabel = <Tooltip content="An eye!"><span className="pt-icon-standard pt-icon-eye-open"/></Tooltip>;
-        const longLabel = "Organic meditation gluten-free, sriracha VHS drinking vinegar beard man.";
-        this.state = {course_name: course.name, nodes: course.lessons, displaySelected: null};
+        if (courses.length) {
+            const id = this.props.match.params.id;
+            const course = courses.find((el) => el.key == id);
+            this.state = {course_name: course.name, nodes: course.lessons, displaySelected: null};
 
-        // UPDATE TO ITREE SCHEMA
-        this.state.nodes.map((l) => {
-            l.label = l.name;
-            l.key = l.name;
-            l.iconName = "box";
-            l.childNodes = l.steps;
-            l.hasCaret = false;
-            l.isSelected = false;
-            l.childNodes.map((step) => {
-                step.label = step.name;
-                step.iconName = "folder-close";
-                step.childNodes = step.substeps;
-                step.hasCaret = false;
-                step.isSelected = false;
-                if (step.childNodes.length) {
-                    step.hasCaret = true;
-                }
-                step.childNodes.map((ss) => {
-                    ss.label = ss.name;
-                    ss.iconName = "film";
-                    step.isSelected = false;
-                    if (ss.substep_screen || ss.substep_camera) {
-                        ss.hasCaret = true;
-                        ss.childNodes = [];
-                        if (ss.substep_screen) {
-                            ss.childNodes.push({label: "screen_cast", iconName: "desktop"});
-                        }
-                        if (ss.substep_camera) {
-                            ss.childNodes.push({label: "camera", iconName: "camera"});
-                        }
-                    }
-                });
-            });
-            if (!l.childNodes.length) {
-                l.label += "   (empty)";
-            } else {
-                l.hasCaret = true;
-            }
-        });
-        let i = 0;
-        this.forEachNode(this.state.nodes, (n) => n.id = i++);
+            genItreeSchema(this.state.nodes);
+            let i = 0;
+            this.forEachNode(this.state.nodes, (n) => n.id = i++);
+        }
 
         this.handleNodeClick = this.handleNodeClick.bind(this);
         this.handleNodeCollapse = this.handleNodeCollapse.bind(this);
@@ -77,7 +83,7 @@ export default class Courses extends React.Component {
     componentDidMount() {
         const token = this.props.state.main.globalHeaderToken;
         const {dispatch} = this.props;
-        axios.get('/api/courses', {'headers': {'Authorization': 'Token ' + token}}).then((res) => {
+        axios.get('/api/courses', {'headers': {'Authorization': 'Token ' + localStorage.token}}).then((res) => {
             dispatch(actions.setCourses(res.data));
         }).catch((res) => {
             console.log(res.data);
@@ -96,96 +102,63 @@ export default class Courses extends React.Component {
         }
     }
 
-    //TODO: Refactor it!
     componentWillReceiveProps(nextProps) {
-        const id = nextProps.match.params.id;
-        const courses = nextProps.state.main.courses;
-        const course = courses.find((el) => el.key == id);
-        if (JSON.stringify(course.lessons) !== JSON.stringify(this.state.nodes)) {
-            console.log("DIFF!!!");
-            let nodes = course.lessons;
-            nodes.map((l) => {
-                l.label = l.name;
-                l.key = l.name;
-                l.iconName = "box";
-                l.childNodes = l.steps;
-                l.hasCaret = false;
-                l.isSelected = false;
-                l.childNodes.map((step) => {
-                    step.label = step.name;
-                    step.iconName = "folder-close";
-                    step.childNodes = step.substeps;
-                    step.hasCaret = false;
-                    step.isSelected = false;
-                    if (step.childNodes.length) {
-                        step.hasCaret = true;
-                    }
-                    step.childNodes.map((ss) => {
-                        ss.label = ss.name;
-                        ss.iconName = "film";
-                        step.isSelected = false;
-                        if (ss.substep_screen || ss.substep_camera) {
-                            ss.hasCaret = true;
-                            ss.childNodes = [];
-                            if (ss.substep_screen) {
-                                ss.childNodes.push({label: "screen_cast", iconName: "desktop"});
-                            }
-                            if (ss.substep_camera) {
-                                ss.childNodes.push({label: "camera", iconName: "camera"});
-                            }
-                        }
-                    });
-                });
-                if (!l.childNodes.length) {
-                    l.label += "   (empty)";
-                } else {
-                    l.hasCaret = true;
-                }
-            });
+        console.log(nextProps)
+        const id = nextProps.match.params.id
+        const courses = nextProps.state.main.courses
+        if (courses.length) {
+            const course = courses.find((el) => el.key == id)
+            if (JSON.stringify(course.lessons) !== JSON.stringify(this.state.nodes)) {
+                let nodes = course.lessons
+                genItreeSchema(nodes)
 
-            let i = 0;
-            this.forEachNode(nodes, (n) => n.id = i++);
+                let i = 0
+                this.forEachNode(nodes, (n) => n.id = i++)
 
-            this.setState({
-                ...this.state,
-                course_name: course.name,
-                nodes
-            });
+                this.setState({
+                    ...this.state,
+                    course_name: course.name,
+                    nodes
+                })
+            }
         }
     }
 
     handleNodeClick(nodeData, _nodePath, e) {
-        const originallySelected = nodeData.isSelected;
-        this.forEachNode(this.state.nodes, (n) => n.isSelected = false);
-        nodeData.isSelected = originallySelected == null ? true : !originallySelected;
+        const originallySelected = nodeData.isSelected
+        this.forEachNode(this.state.nodes, (n) => n.isSelected = false)
+        nodeData.isSelected = originallySelected == null ? true : !originallySelected
         if (nodeData.isSelected) {
-            this.delayedSelectedUpdate(nodeData);
-            this.setState({...this.state, selectedNotShown: nodeData});
+            this.delayedSelectedUpdate(nodeData)
+            this.setState({...this.state, selectedNotShown: nodeData})
         } else {
-            this.delayedSelectedUpdate(null);
-            this.setState({...this.state, selectedNotShown: null});
+            this.delayedSelectedUpdate(null)
+            this.setState({...this.state, selectedNotShown: null})
         }
     }
 
     handleNodeCollapse(nodeData) {
-        nodeData.isExpanded = false;
-        this.setState(this.state);
+        nodeData.isExpanded = false
+        this.setState(this.state)
     }
 
     handleNodeExpand(nodeData) {
-        nodeData.isExpanded = true;
-        this.setState(this.state);
+        nodeData.isExpanded = true
+        this.setState(this.state)
     }
 
     handleDoubleClick(nodeData) {
         if (nodeData.isExpanded) {
-            this.handleNodeCollapse(nodeData);
+            this.handleNodeCollapse(nodeData)
         } else {
-            this.handleNodeExpand(nodeData);
+            this.handleNodeExpand(nodeData)
         }
-        this.setState(this.state);
+        this.setState(this.state)
     }
     render() {
+        if (!this.props.state.main.courses.length) {
+            return (<div></div>)
+        }
         return (
             <div>
                 <div><h3>{this.state.course_name}</h3></div>
@@ -204,11 +177,11 @@ export default class Courses extends React.Component {
 
     forEachNode(nodes, callback) {
         if (nodes == null) {
-            return;
+            return
         }
         for (let node of nodes) {
-            callback(node);
-            this.forEachNode(node.childNodes, callback);
+            callback(node)
+            this.forEachNode(node.childNodes, callback)
         }
     }
 }

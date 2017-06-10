@@ -49,3 +49,7 @@
     overflow-x: hidden;
     z-index: 9999999999999;
 }
+
+.tudor-recorder-controls {
+    background: red;
+}

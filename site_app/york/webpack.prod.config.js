@@ -33,6 +33,7 @@ config.module.loaders.push(
   { test: /\.jsx?$/, exclude: /node_modules/, loader: 'babel' }
 )
 
+// Not used yet, but should be used to create bundle from a lot of different css and fonts
 config.module.loaders.push(
   {test: /\.(eot|woff|woff2|ttf|svg|png|jpg)$/, loader: 'url-loader?limit=30000&name=/icon_font/[name].[ext]'}
 )
