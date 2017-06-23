@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+if [[ $1 == "prod" ]]
+then
+    cd site_app && ./manage.py collectstatic
+fi
+
 $VIRTUAL_ENV/bin/uwsgi --ini ./site_app/uwsgi.ini:local --virtualenv $VIRTUAL_ENV &
 WELSHSERVER_PID=$!
 

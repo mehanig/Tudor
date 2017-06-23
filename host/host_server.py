@@ -13,13 +13,13 @@ Send a HEAD request::
     curl -I http://localhost
 
 Start a record::
-    curl -d "ACTION=START&PATH=./Tests.mp4" http://localhost/recorder
+    curl -d "ACTION=START&PATH=./Tests.mp4" http://localhost:4263/recorder
 
 Stop a record::
-    curl -d "ACTION=STOP&PATH=./Tests.mp4" http://localhost/recorder
+    curl -d "ACTION=STOP&PATH=./Tests.mp4" http://localhost:4263/recorder
 
 Stop all ffmpeg processes::
-    curl -d "ACTION=KILL_ALL&PATH=any" http://localhost/recorder
+    curl -d "ACTION=KILL_ALL&PATH=any" http://localhost:4263/recorder
 
 Look how many processes is running::
     curl http://localhost//monitoring
@@ -36,6 +36,11 @@ class HostService(BaseHTTPRequestHandler):
         self.send_header('Content-type', 'text/html')
         self.end_headers()
 
+    def _set_headers_400(self):
+        self.send_response(400)
+        self.send_header('Content-type', 'text/html')
+        self.end_headers()
+
     def do_GET(self):
         if self.path == "/":
             self._set_headers()
@@ -44,6 +49,9 @@ class HostService(BaseHTTPRequestHandler):
             self._set_headers()
             data = "{data}".format(data=len(FFmpegRunner.proc_list))
             self.wfile.write(data.encode())
+        if self.path == "/recorder":
+            self._set_headers()
+            self.wfile.write(b"<html><body><h1>Incorrect method</h1></body></html>")
 
     def do_HEAD(self):
         self._set_headers()
@@ -57,6 +65,10 @@ class HostService(BaseHTTPRequestHandler):
                 FFmpegRunner(post_params).act()
                 self._set_headers()
                 self.wfile.write(b"<html><body><h1>OK</h1></body></html>")
+            else:
+                print("Incorrect")
+                self._set_headers()
+                self.wfile.write(b"<html><body><h1>Incorrect params</h1></body></html>")
 
 
 def run(server_class=HTTPServer, handler_class=HostService, port=80):

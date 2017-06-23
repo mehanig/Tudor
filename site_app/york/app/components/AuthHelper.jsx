@@ -27,7 +27,7 @@ export default class AuthHelper extends React.Component {
         let {dispatch} = this.props;
         if (localStorage.token) {
             dispatch(actions.setGlobalHeaderToken(localStorage.token));
-            axios.get('api/users/i/', {'headers':{'Authorization': 'Token ' + localStorage.token}}).then(function (data) {
+            axios.get('/api/users/i/', {'headers':{'Authorization': 'Token ' + localStorage.token}}).then(function (data) {
                 this.setState({data: data.data});
             }.bind(this)).catch(() => {
                 this.setState({data: {error: true}});

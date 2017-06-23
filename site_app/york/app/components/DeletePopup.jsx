@@ -30,11 +30,10 @@ export default class RenamePopup extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            "new_name": "",
+            "path": "",
         };
         this.handleClose = this.handleClose.bind(this);
-        this.handleRename = this.handleRename.bind(this);
-        this.handleTextInputChange = this.handleTextInputChange.bind(this);
+        this.handleDelete = this.handleDelete.bind(this);
     }
 
     componentDidMount() {
@@ -42,18 +41,17 @@ export default class RenamePopup extends React.Component {
 
     handleClose() {
         let {dispatch} = this.props;
-        dispatch(actions.setAddItemPopupClose(this.props.isOpenFlagState));
+        dispatch(actions.setCloseDeleteItemPopup());
     }
 
     //TODO rewrite to make async actions
-    handleRename() {
+    handleDelete() {
         let {dispatch} = this.props;
-        // dispatch(actions.setRename());
         const token = this.props.state.main.globalHeaderToken;
         const { course_id } = this.props;
         const data = {
-            "action": "add",
-            "new_path": this.props.item.local_path + "/" + this.state.new_name,
+            "action": "delete",
+            "path": this.props.item.local_path
         };
         dispatch(actions.setIsLoadingTrue());
         axios.put(`/api/courses/${course_id}/`, data, {'headers':{'Authorization': 'Token ' + localStorage.token}}).then((res)=> {
@@ -73,29 +71,21 @@ export default class RenamePopup extends React.Component {
         });
     }
 
-    handleTextInputChange(e) {
-        console.log(e.target.value);
-        this.setState({new_name: e.target.value});
-    }
-
     render() {
         const classes = "pt-card pt-elevation-4 docs-overlay-example-transition pt-overlay-content tudor-popup";
         const selected = this.props.item;
         return (
             <div>
                 { selected ?
-                    <Overlay onClose={this.handleClose} isOpen={this.props.state.main[this.props.isOpenFlagState]}>
+                    <Overlay onClose={this.handleClose} isOpen={this.props.state.main.deleteItemPopup}>
                         <div className={classes} >
-                            <h3>Create Object</h3>
+                            <h3>Delete Object</h3>
                             <p>
-                                Enter new name for object:
-                            </p>
-                            <p>
-                                <input className="pt-input pt-intent-primary" type="text" placeholder={selected.name} dir="auto" onChange={this.handleTextInputChange}/>
+                                Are you sure you want to delete: {this.props.item.name}
                             </p>
                             <br />
-                            <Button intent={Intent.DANGER} onClick={this.handleClose}>Close</Button>
-                            <Button onClick={this.handleRename} style={{ float: "right" }}>Create</Button>
+                            <Button intent={Intent.DANGER} onClick={this.handleClose}>Cancel</Button>
+                            <Button onClick={this.handleDelete} style={{ float: "right" }}>Delete</Button>
                         </div>
                     </Overlay>
                     :

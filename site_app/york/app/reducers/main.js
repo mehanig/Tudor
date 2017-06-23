@@ -7,7 +7,8 @@ const initialState = {
     isLoadingState: false,
     addLessonPopup: false,
     addStepPopup: false,
-    addSubStepPopup: false
+    addSubStepPopup: false,
+    deleteItemPopup: false
 };
 
 export default function submissions(state = initialState, action = {}) {
@@ -33,6 +34,10 @@ export default function submissions(state = initialState, action = {}) {
         case Actions.CLOSE_ADDITEM_POPUP:
             const flag = action.flag;
             return {...state, [flag]: false}
+        case Actions.OPEN_DELETEITEM_POPUP:
+            return {...state, deleteItemPopup: true}
+        case Actions.CLOSE_DELETEITEM_POPUP:
+            return {...state, deleteItemPopup: false}
         case Actions.SET_COURSE_STRUCTURE:
             let id = state.courses.findIndex((el) => el.key == action.course_id)
             state.courses[id] = action.course_data

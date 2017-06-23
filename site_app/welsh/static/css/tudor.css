@@ -31,11 +31,9 @@
 
 .tudor-popup {
     z-index: 20;
-    width: 500px;
-    position: fixed;
-    top: 250px;
-    left: 50%;
-    margin-left: -250px;
+    position: relative;
+    margin: auto;
+    margin-top: 10%;
 }
 
 .tudor-global__loading_state {
@@ -52,4 +50,9 @@
 
 .tudor-recorder-controls {
     background: red;
+}
+
+/*overwrite popup*/
+.pt-overlay span{
+    display: flex !important;
 }

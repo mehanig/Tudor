@@ -6,6 +6,9 @@ class Ops:
     ADD = 'add'
     RENAME = 'rename'
     DELETE = 'delete'
+    START = 'start'
+    STOP = 'stop'
+    STATUS = 'status'
 
 
 class UserAction:
@@ -27,6 +30,12 @@ class UserAction:
                 print("DELETE")
                 self.result = ServerFileSystemFolder.delete_in_course(course=course,
                                                                       path=request.data['path'])
+            elif request.data['action'] == Ops.START:
+                pass
+            elif request.data['action'] == Ops.STOP:
+                pass
+            elif request.data['action'] == Ops.STATUS:
+                pass
             else:
                 raise Exception('No Action Type')
 

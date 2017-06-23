@@ -1,3 +1,5 @@
+import requests
+
 from django.contrib.auth.models import User
 from rest_framework import status, permissions, authentication
 
@@ -77,8 +79,12 @@ class CourseViewSet(viewsets.ModelViewSet):
         return Response(status=status.HTTP_200_OK)
 
 
-@api_view()
+@api_view(['POST'])
 def start_recording(request):
+    if request.method == 'POST':
+        print(request.data['path'])
+        requests.post('http://localhost:4263/recorder', data={"ACTION": "START", "PATH": request.data['path']})
+        # print(resp)
     return Response({"message": "Start Recording!"})
 
 

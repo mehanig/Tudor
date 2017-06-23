@@ -9,6 +9,8 @@ export const OPEN_ADDSUBSTEP_POPUP = "OPEN_ADDSUBSTEP_POPUP";
 export const OPEN_ADDSTEP_POPUP = "OPEN_ADDSTEP_POPUP";
 export const OPEN_ADDLESSON_POPUP = "OPEN_ADDLESSON_POPUP";
 export const CLOSE_ADDITEM_POPUP = "CLOSE_ADDITEM_POPUP";
+export const OPEN_DELETEITEM_POPUP = "OPEN_DELETEITEM_POPUP";
+export const CLOSE_DELETEITEM_POPUP = "CLOSE_DELETEITEM_POPUP";
 
 export function setIsLoadingFalse() {
    return {type: SET_IS_LOADING_FALSE}
@@ -48,6 +50,14 @@ export function setAddLessonPopupOpen() {
 
 export function setAddItemPopupClose(flag) {
     return {type: CLOSE_ADDITEM_POPUP, flag}
+}
+
+export function setOpenDeleteItemPopup() {
+    return {type: OPEN_DELETEITEM_POPUP}
+}
+
+export function setCloseDeleteItemPopup() {
+    return {type: CLOSE_DELETEITEM_POPUP}
 }
 
 export function setCourseStructure(course_id, course_data) {

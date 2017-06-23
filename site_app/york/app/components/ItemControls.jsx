@@ -13,6 +13,7 @@ import * as actions from "../actions/mainActions"
 
 import RenamePopup from "../components/RenamePopup"
 import AddItemPopup from "../components/AddItemPopup"
+import DeletePopup from "../components/DeletePopup"
 import RecorderControls from "../components/RecorderControls"
 
 import { Classes, Menu, MenuDivider, MenuItem } from "@blueprintjs/core"
@@ -74,6 +75,7 @@ export default class ItemControls extends React.Component {
         let {dispatch} = this.props
         if (this.state.item) {
             // this.setState({...this.state, showDelete: true})
+            dispatch(actions.setOpenDeleteItemPopup())
         }
     }
 
@@ -126,6 +128,7 @@ export default class ItemControls extends React.Component {
                         text="Notes2..."/>
                     <MenuDivider />
                     <MenuItem iconName="trash" text="Delete" onClick={this.handleDelete} />
+                    <DeletePopup item={this.state.item} course_id={this.props.course_id}/>
                 </Menu>
             </div>
         )
